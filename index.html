@@ -2,58 +2,175 @@
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
-  <title>SIN295 Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIN295 Elite Messenger</title>
   <style>
-    body, html { height: 100%; margin: 0; font-family: sans-serif; }
-    /* हमने यहाँ एक पक्का इमेज लिंक दिया है जो काम करेगा */
-    body { 
-      background-image: url('https://images.unsplash.com/photo-1634563853154-180413158b76?q=80&w=1000&auto=format&fit=crop'); 
-      background-size: cover;
-      background-position: center;
-      display: flex; justify-content: center; align-items: center;
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+    body, html { height: 100%; background: #000; color: #fff; overflow-x: hidden; }
+
+    /* 1. फ्लोटिंग लाइट बैकग्राउंड एनीमेशन */
+    .bg-glowing-light {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: radial-gradient(circle at 20% 30%, #ff007f 0%, transparent 40%),
+                  radial-gradient(circle at 80% 70%, #7928ca 0%, transparent 40%),
+                  radial-gradient(circle at 50% 50%, #4a00e0 0%, transparent 50%);
+      filter: blur(70px); opacity: 0.35; z-index: -1;
+      animation: floatGlow 12s infinite alternate ease-in-out;
     }
-    .app-container { width: 90%; max-width: 400px; background: rgba(0, 0, 0, 0.85); color: white; border-radius: 15px; padding: 20px; border: 1px solid #ffd700; box-shadow: 0 0 15px #ffd700; }
-    .header { text-align: center; font-size: 28px; font-weight: bold; color: #ffd700; margin-bottom: 20px; }
-    input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 5px; border: none; background: #222; color: white; box-sizing: border-box; }
-    button { width: 100%; padding: 12px; background: #ffd700; color: black; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; margin-top: 10px; }
-    .chat-box { height: 250px; overflow-y: auto; background: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 5px; margin-top: 10px; }
-    .msg { background: #333; padding: 8px; margin: 5px 0; border-radius: 8px; }
-    .hidden { display: none; }
+    @keyframes floatGlow {
+      0% { transform: scale(1) translate(0, 0); }
+      50% { transform: scale(1.15) translate(-20px, 20px); }
+      100% { transform: scale(1) translate(20px, -20px); }
+    }
+
+    /* 2. लेआउट एवं कार्ड्स */
+    .app-viewport { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
+    .app-card {
+      width: 100%; max-width: 420px; background: rgba(18, 18, 18, 0.85);
+      border: 1px solid rgba(255, 0, 127, 0.3); border-radius: 20px;
+      box-shadow: 0 0 25px rgba(121, 40, 202, 0.3); backdrop-filter: blur(15px);
+      padding: 20px; display: flex; flex-direction: column; position: relative;
+    }
+    .brand-header { text-align: center; font-size: 26px; font-weight: 800; color: #ff007f; letter-spacing: 2px; margin-bottom: 15px; text-shadow: 0 0 10px #ff007f; }
+
+    /* फॉर्म एलिमेंट्स */
+    input { width: 100%; padding: 12px 15px; margin: 8px 0; border-radius: 10px; border: 1px solid #333; background: #121212; color: #fff; font-size: 14px; outline: none; }
+    input:focus { border-color: #ff007f; box-shadow: 0 0 8px rgba(255, 0, 127, 0.4); }
+    button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 10px; border: none; background: linear-gradient(45deg, #ff007f, #7928ca); color: #fff; font-weight: bold; cursor: pointer; transition: 0.3s; }
+    button:hover { opacity: 0.9; transform: scale(0.99); }
+    .btn-secondary { background: #222; border: 1px solid #444; }
+    
+    .hidden { display: none !important; }
+    .step-indicator { font-size: 12px; color: #aaa; text-align: center; margin-bottom: 10px; }
+    
+    /* बॉटम नेविगेशन */
+    .bottom-nav { display: flex; justify-content: space-around; margin-top: 15px; padding-top: 12px; border-top: 1px solid #222; }
+    .nav-item { cursor: pointer; color: #888; font-size: 14px; font-weight: 600; text-align: center; }
+    .nav-item.active { color: #ff007f; text-shadow: 0 0 5px #ff007f; }
+
+    /* प्रोफाइल व लिस्ट्स */
+    .profile-avatar { width: 90px; height: 90px; border-radius: 50%; border: 2px solid #ff007f; object-fit: cover; margin: 10px auto; display: block; }
+    .item-card { background: #1a1a1a; padding: 10px 15px; border-radius: 10px; margin: 6px 0; display: flex; justify-content: space-between; align-items: center; border: 1px solid #282828; }
+    .chat-container { height: 240px; overflow-y: auto; background: rgba(0,0,0,0.5); border-radius: 10px; padding: 10px; margin: 10px 0; display: flex; flex-direction: column; gap: 8px; }
+    .msg-bubble { background: #222; padding: 8px 12px; border-radius: 12px; max-width: 80%; font-size: 13px; }
+    .msg-mine { background: linear-gradient(45deg, #ff007f, #7928ca); align-self: flex-end; }
   </style>
 </head>
 <body>
 
-<div class="app-container">
-  <div class="header">SIN295</div>
+<div class="bg-glowing-light"></div>
 
-  <!-- लॉगिन/साइनअप -->
-  <div id="authArea">
-    <h3 id="formTitle">लॉगिन करें</h3>
-    <input type="email" id="email" placeholder="ईमेल">
-    <input type="password" id="pass" placeholder="पासवर्ड">
-    <button onclick="handleAuth()" id="mainBtn">लॉगिन</button>
-    <p onclick="toggleMode()" style="cursor:pointer; text-align:center; color:#ffd700; margin-top:10px;" id="toggleText">अकाउंट नहीं है? साइन-अप</p>
-  </div>
+<div class="app-viewport">
+  <div class="app-card">
+    <div class="brand-header">SIN295</div>
 
-  <!-- चैट -->
-  <div id="chatArea" class="hidden">
-    <input type="text" id="roomName" placeholder="रूम का नाम">
-    <button onclick="joinRoom()">रूम में जुड़ें</button>
-    <div class="chat-box" id="chatBox"></div>
-    <div style="display:flex; gap:5px;">
-        <input type="text" id="msgInput" placeholder="मैसेज...">
-        <button onclick="send()" style="margin-top:0; width:60px;">➤</button>
+    <!-- =============== 1. मल्टी-स्टेप साइन-अप व लॉगिन =============== -->
+    <div id="authFlow">
+      <div class="step-indicator" id="stepBadge">स्टेप 1/4: ईमेल दर्ज करें</div>
+      
+      <!-- स्टेप 1: ईमेल -->
+      <div id="step1">
+        <input type="email" id="regEmail" placeholder="ईमेल आईडी लिखें">
+        <button onclick="sendEmailAuthLink()">ईमेल पर वेरिफिकेशन भेजें</button>
+        <p onclick="toggleLogin()" style="text-align:center; font-size:12px; color:#ff007f; margin-top:12px; cursor:pointer;">अकाउंट है? लॉगिन करें</p>
+      </div>
+
+      <!-- स्टेप 2: फोन नंबर (बिना OTP के सिर्फ प्रोफाइल में सेव होगा) -->
+      <div id="step2" class="hidden">
+        <input type="tel" id="regPhone" placeholder="फोन नंबर दर्ज करें (प्राइवेसी/प्रोफाइल हेतु)">
+        <button onclick="savePhoneStep()">आगे बढ़ें (यूजरनेम सेट करें)</button>
+      </div>
+
+      <!-- स्टेप 3: यूजरनेम व DOB -->
+      <div id="step3" class="hidden">
+        <input type="text" id="regUsername" placeholder="यूनिक यूजरनेम चुनें">
+        <input type="date" id="regDob">
+        <button onclick="saveUserDetailStep()">आगे बढ़ें (पासवर्ड सेट करें)</button>
+      </div>
+
+      <!-- स्टेप 4: पासवर्ड सेट करें -->
+      <div id="step4" class="hidden">
+        <input type="password" id="regPass" placeholder="मजबूत पासवर्ड बनाएं">
+        <button onclick="completeRegistration()">अकाउंट साइन-अप पूरा करें</button>
+      </div>
+
+      <!-- लॉगिन व्यू -->
+      <div id="loginView" class="hidden">
+        <input type="email" id="loginEmail" placeholder="ईमेल आईडी">
+        <input type="password" id="loginPass" placeholder="पासवर्ड">
+        <button onclick="loginUser()">लॉगिन करें</button>
+        <p onclick="toggleLogin()" style="text-align:center; font-size:12px; color:#ff007f; margin-top:12px; cursor:pointer;">नया अकाउंट बनाएं</p>
+      </div>
     </div>
-    <button onclick="firebase.auth().signOut()" style="background:#ff4444;">लॉगआउट</button>
+
+    <!-- =============== 2. मेन डैशबोर्ड =============== -->
+    <div id="mainDashboard" class="hidden">
+      <!-- टॉप सर्च बार -->
+      <input type="text" id="searchInput" placeholder="🔍 यूजरनेम सर्च करें..." onchange="searchUser()">
+
+      <!-- व्यू 1: मुख्य चैट व फ्रेंड्स -->
+      <div id="tabHome">
+        <div style="font-size:13px; color:#888; margin:10px 0 5px 0;">आपके दोस्त</div>
+        <div id="friendsContainer"></div>
+      </div>
+
+      <!-- व्यू 2: रिक्वेस्ट्स -->
+      <div id="tabRequests" class="hidden">
+        <div style="font-size:13px; color:#888; margin:10px 0 5px 0;">आयी हुई रिक्वेस्ट्स</div>
+        <div id="requestsContainer"></div>
+      </div>
+
+      <!-- व्यू 3: प्रोफाइल सेक्शन -->
+      <div id="tabProfile" class="hidden">
+        <img id="profileImg" src="https://via.placeholder.com/90" class="profile-avatar">
+        <input type="file" id="imgUploader" accept="image/*" style="font-size:11px;" onchange="uploadProfilePic(event)">
+        
+        <div style="text-align:center; margin:10px 0;">
+          <h3 id="profileUsername">@username</h3>
+          <p id="profileEmail" style="font-size:12px; color:#aaa;"></p>
+          <p id="profilePhone" style="font-size:12px; color:#666; margin-top:3px;"></p>
+        </div>
+
+        <div style="border-top:1px dashed #333; padding-top:10px; margin-top:10px;">
+          <input type="password" id="newPasswordInput" placeholder="नया पासवर्ड लिखें">
+          <button onclick="handlePasswordChange()" class="btn-secondary">पासवर्ड बदलें (1 दिन में 1 बार)</button>
+        </div>
+        <button onclick="logoutUser()" style="background:#ff3b30; margin-top:15px;">लॉगआउट</button>
+      </div>
+
+      <!-- नेविगेशन बार -->
+      <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('home')" id="navHome">💬 चैट</div>
+        <div class="nav-item" onclick="switchTab('req')" id="navReq">📥 रिक्वेस्ट</div>
+        <div class="nav-item" onclick="switchTab('profile')" id="navProfile">👤 प्रोफाइल</div>
+      </div>
+    </div>
+
+    <!-- =============== 3. चैट विंडो =============== -->
+    <div id="chatScreen" class="hidden">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h4 id="activeChatName" style="color:#ff007f;">चैट</h4>
+        <button onclick="closeChat()" style="width:auto; padding:5px 10px; font-size:12px;" class="btn-secondary">← बंद करें</button>
+      </div>
+      <div class="chat-container" id="chatMessages"></div>
+      <div style="display:flex; gap:5px;">
+        <input type="text" id="chatInput" placeholder="मैसेज टाइप करें..." style="margin:0;">
+        <button onclick="sendChatMessage()" style="width:60px; margin:0;">➤</button>
+      </div>
+    </div>
+
   </div>
 </div>
 
+<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
 <script>
-  const config = {
+  // आपकी Firebase कॉन्फ़िगरेशन
+  const firebaseConfig = {
     apiKey: "AIzaSyCdvQCtWPHCTiwOaxpNhm7I9pI9J6YkHj0",
     authDomain: "sin295.firebaseapp.com",
     databaseURL: "https://sin295-default-rtdb.firebaseio.com",
@@ -62,50 +179,252 @@
     messagingSenderId: "563305243132",
     appId: "1:563305243132:web:04bcaa9499d1fe4c8f9279"
   };
-  firebase.initializeApp(config);
-  
-  let isSignup = false;
-  function toggleMode() {
-    isSignup = !isSignup;
-    document.getElementById('formTitle').innerText = isSignup ? "साइन-अप करें" : "लॉगिन करें";
-    document.getElementById('mainBtn').innerText = isSignup ? "साइन-अप" : "लॉगिन";
-    document.getElementById('toggleText').innerText = isSignup ? "अकाउंट है? लॉगिन करें" : "अकाउंट नहीं है? साइन-अप";
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.database();
+  const storage = firebase.storage();
+
+  let tempUserData = {};
+  let currentUserUid = "", currentUsername = "";
+  let currentChatRoomId = "";
+
+  // 1. रजिस्ट्रेशन (बिना Phone OTP के)
+  function sendEmailAuthLink() {
+    const email = document.getElementById('regEmail').value.trim();
+    if(!email) return alert("कृपया ईमेल भरें!");
+    tempUserData.email = email;
+    
+    document.getElementById('step1').classList.add('hidden');
+    document.getElementById('step2').classList.remove('hidden');
+    document.getElementById('stepBadge').innerText = "स्टेप 2/4: फोन नंबर भरें";
   }
 
-  function handleAuth() {
-    const e = document.getElementById('email').value;
-    const p = document.getElementById('pass').value;
-    if(isSignup) firebase.auth().createUserWithEmailAndPassword(e, p).catch(err=>alert(err.message));
-    else firebase.auth().signInWithEmailAndPassword(e, p).catch(err=>alert(err.message));
+  function savePhoneStep() {
+    const phone = document.getElementById('regPhone').value.trim();
+    if(!phone) return alert("फोन नंबर भरें!");
+    tempUserData.phone = phone; // बिना OTP के डायरेक्ट सेव
+
+    document.getElementById('step2').classList.add('hidden');
+    document.getElementById('step3').classList.remove('hidden');
+    document.getElementById('stepBadge').innerText = "स्टेप 3/4: प्रोफाइल डिटेल्स";
   }
 
-  firebase.auth().onAuthStateChanged(user => {
-    if(user) {
-        document.getElementById('authArea').classList.add('hidden');
-        document.getElementById('chatArea').classList.remove('hidden');
-    } else {
-        document.getElementById('authArea').classList.remove('hidden');
-        document.getElementById('chatArea').classList.add('hidden');
-    }
-  });
+  function saveUserDetailStep() {
+    const username = document.getElementById('regUsername').value.trim();
+    const dob = document.getElementById('regDob').value;
+    if(!username || !dob) return alert("यूजरनेम और जन्मतिथि भरें!");
+    
+    db.ref('usernames/' + username.toLowerCase()).once('value', snap => {
+      if(snap.exists()) return alert("यह यूजरनेम पहले से ले लिया गया है!");
+      tempUserData.username = username;
+      tempUserData.dob = dob;
 
-  let currentRoom = "";
-  function joinRoom() {
-    currentRoom = document.getElementById('roomName').value;
-    document.getElementById('chatBox').innerHTML = `<b>${currentRoom} में स्वागत है</b>`;
-    firebase.database().ref("chats/" + currentRoom).on("child_added", snap => {
-        const div = document.createElement('div');
-        div.className = 'msg';
-        div.innerText = snap.val().text;
-        document.getElementById('chatBox').appendChild(div);
+      document.getElementById('step3').classList.add('hidden');
+      document.getElementById('step4').classList.remove('hidden');
+      document.getElementById('stepBadge').innerText = "स्टेप 4/4: पासवर्ड सेट करें";
     });
   }
 
-  function send() {
-    const t = document.getElementById('msgInput').value;
-    firebase.database().ref("chats/" + currentRoom).push({text: t});
-    document.getElementById('msgInput').value = '';
+  function completeRegistration() {
+    const pass = document.getElementById('regPass').value.trim();
+    if(pass.length < 6) return alert("पासवर्ड कम से कम 6 अक्षरों का होना चाहिए!");
+
+    auth.createUserWithEmailAndPassword(tempUserData.email, pass).then(res => {
+      const uid = res.user.uid;
+      res.user.sendEmailVerification();
+      alert("आपके ईमेल पर वेरिफिकेशन लिंक भेज दिया गया है!");
+
+      // डेटाबेस में यूजर का डेटा व फोन नंबर सेव करना
+      db.ref('users/' + uid).set({
+        email: tempUserData.email,
+        phone: tempUserData.phone,
+        username: tempUserData.username,
+        dob: tempUserData.dob,
+        lastPasswordChange: 0, // पासवर्ड पहली बार सेट हुआ
+        photoUrl: ''
+      });
+      db.ref('usernames/' + tempUserData.username.toLowerCase()).set(uid);
+    }).catch(err => alert(err.message));
   }
+
+  function toggleLogin() {
+    document.getElementById('step1').classList.toggle('hidden');
+    document.getElementById('loginView').classList.toggle('hidden');
+  }
+
+  function loginUser() {
+    const e = document.getElementById('loginEmail').value.trim();
+    const p = document.getElementById('loginPass').value.trim();
+    auth.signInWithEmailAndPassword(e, p).catch(err => alert(err.message));
+  }
+
+  // 2. ऑथेंटिकेशन स्टेट
+  auth.onAuthStateChanged(user => {
+    if(user) {
+      currentUserUid = user.uid;
+      db.ref('users/' + user.uid).on('value', snap => {
+        if(snap.exists()){
+          const data = snap.val();
+          currentUsername = data.username;
+          document.getElementById('profileUsername').innerText = "@" + data.username;
+          document.getElementById('profileEmail').innerText = data.email;
+          document.getElementById('profilePhone').innerText = "📞 " + (data.phone || 'N/A');
+          if(data.photoUrl) document.getElementById('profileImg').src = data.photoUrl;
+
+          document.getElementById('authFlow').classList.add('hidden');
+          document.getElementById('mainDashboard').classList.remove('hidden');
+          loadFriends();
+          loadRequests();
+        }
+      });
+    } else {
+      document.getElementById('authFlow').classList.remove('hidden');
+      document.getElementById('mainDashboard').classList.add('hidden');
+    }
+  });
+
+  // 3. 1-दिन (24 घंटे) का पासवर्ड चेंज नियम
+  function handlePasswordChange() {
+    const newPass = document.getElementById('newPasswordInput').value.trim();
+    if(newPass.length < 6) return alert("नया पासवर्ड कम से कम 6 अक्षरों का होना चाहिए!");
+
+    db.ref('users/' + currentUserUid).once('value', snap => {
+      const lastChange = snap.val().lastPasswordChange || 0;
+      const oneDayMs = 24 * 60 * 60 * 1000; // 24 घंटे का समय (मिलीसेकेंड्स में)
+      
+      if(Date.now() - lastChange < oneDayMs) {
+        alert("सुरक्षा नियम: आप 1 दिन (24 घंटे) में केवल एक ही बार पासवर्ड बदल सकते हैं!");
+      } else {
+        auth.currentUser.updatePassword(newPass).then(() => {
+          db.ref('users/' + currentUserUid).update({ lastPasswordChange: Date.now() });
+          alert("पासवर्ड सफलतापूर्वक बदल दिया गया है!");
+          document.getElementById('newPasswordInput').value = '';
+        }).catch(err => alert(err.message));
+      }
+    });
+  }
+
+  // 4. प्रोफाइल पिक्चर
+  function uploadProfilePic(event) {
+    const file = event.target.files[0];
+    if(!file) return;
+    const ref = storage.ref('profiles/' + currentUserUid);
+    ref.put(file).then(() => {
+      ref.getDownloadURL().then(url => {
+        db.ref('users/' + currentUserUid).update({ photoUrl: url });
+        alert("प्रोफाइल फोटो अपडेट हो गई!");
+      });
+    });
+  }
+
+  // 5. सर्च व रिक्वेस्ट्स
+  function searchUser() {
+    const sName = document.getElementById('searchInput').value.trim().toLowerCase();
+    if(!sName || sName === currentUsername.toLowerCase()) return;
+
+    db.ref('usernames/' + sName).once('value', snap => {
+      if(snap.exists()){
+        const targetUid = snap.val();
+        if(confirm("@" + sName + " को फ्रेंड रिक्वेस्ट भेजें?")){
+          db.ref('requests/' + targetUid + '/' + currentUserUid).set({ fromName: currentUsername });
+          alert("रिक्वेस्ट भेज दी गई!");
+        }
+      } else { alert("यूजर नहीं मिला!"); }
+    });
+  }
+
+  function loadRequests() {
+    db.ref('requests/' + currentUserUid).on('value', snap => {
+      const container = document.getElementById('requestsContainer');
+      container.innerHTML = '';
+      if(!snap.exists()) container.innerHTML = '<p style="font-size:12px; color:#666;">कोई रिक्वेस्ट नहीं है</p>';
+      snap.forEach(child => {
+        const senderUid = child.key;
+        const senderName = child.val().fromName;
+        container.innerHTML += `<div class="item-card">
+          <span>@${senderName}</span>
+          <button onclick="acceptReq('${senderUid}', '${senderName}')" style="width:auto; padding:5px 10px; font-size:12px;">एक्सेप्ट</button>
+        </div>`;
+      });
+    });
+  }
+
+  function acceptReq(senderUid, senderName) {
+    db.ref('friends/' + currentUserUid + '/' + senderUid).set({ username: senderName });
+    db.ref('friends/' + senderUid + '/' + currentUserUid).set({ username: currentUsername });
+    db.ref('requests/' + currentUserUid + '/' + senderUid).remove();
+  }
+
+  function loadFriends() {
+    db.ref('friends/' + currentUserUid).on('value', snap => {
+      const container = document.getElementById('friendsContainer');
+      container.innerHTML = '';
+      if(!snap.exists()) container.innerHTML = '<p style="font-size:12px; color:#666;">कोई दोस्त नहीं है, सर्च करके जोड़ें</p>';
+      snap.forEach(child => {
+        const fUid = child.key;
+        const fName = child.val().username;
+        container.innerHTML += `<div class="item-card">
+          <span><b>${fName}</b></span>
+          <button onclick="openChat('${fUid}', '${fName}')" style="width:auto; padding:5px 10px; font-size:12px;">चैट</button>
+        </div>`;
+      });
+    });
+  }
+
+  // 6. मैसेजिंग
+  function openChat(fUid, fName) {
+    currentChatRoomId = currentUserUid < fUid ? `${currentUserUid}_${fUid}` : `${fUid}_${currentUserUid}`;
+    document.getElementById('activeChatName').innerText = "@" + fName + " से चैट";
+    document.getElementById('mainDashboard').classList.add('hidden');
+    document.getElementById('chatScreen').classList.remove('hidden');
+
+    const box = document.getElementById('chatMessages');
+    box.innerHTML = '';
+    db.ref('chats/' + currentChatRoomId).off();
+    db.ref('chats/' + currentChatRoomId).on('child_added', snap => {
+      const msg = snap.val();
+      const div = document.createElement('div');
+      div.className = 'msg-bubble ' + (msg.sender === currentUserUid ? 'msg-mine' : '');
+      div.innerText = msg.text;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    });
+  }
+
+  function sendChatMessage() {
+    const input = document.getElementById('chatInput');
+    const txt = input.value.trim();
+    if(txt && currentChatRoomId) {
+      db.ref('chats/' + currentChatRoomId).push({ sender: currentUserUid, text: txt });
+      input.value = '';
+    }
+  }
+
+  function closeChat() {
+    document.getElementById('chatScreen').classList.add('hidden');
+    document.getElementById('mainDashboard').classList.remove('hidden');
+  }
+
+  function switchTab(tab) {
+    document.getElementById('tabHome').classList.add('hidden');
+    document.getElementById('tabRequests').classList.add('hidden');
+    document.getElementById('tabProfile').classList.add('hidden');
+    document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+
+    if(tab === 'home') {
+      document.getElementById('tabHome').classList.remove('hidden');
+      document.getElementById('navHome').classList.add('active');
+    } else if(tab === 'req') {
+      document.getElementById('tabRequests').classList.remove('hidden');
+      document.getElementById('navReq').classList.add('active');
+    } else if(tab === 'profile') {
+      document.getElementById('tabProfile').classList.remove('hidden');
+      document.getElementById('navProfile').classList.add('active');
+    }
+  }
+
+  function logoutUser() { auth.signOut(); }
 </script>
 </body>
 </html>

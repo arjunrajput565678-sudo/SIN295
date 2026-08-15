@@ -203,27 +203,25 @@
   function savePhoneStep() {
     const phone = document.getElementById('regPhone').value.trim();
     if(!phone) return alert("फोन नंबर भरें!");
-    tempUserData.phone = phone; // बिना OTP के डायरेक्ट सेव
+    tempUserData.phone = phone;
 
     document.getElementById('step2').classList.add('hidden');
     document.getElementById('step3').classList.remove('hidden');
     document.getElementById('stepBadge').innerText = "स्टेप 3/4: प्रोफाइल डिटेल्स";
   }
 
+  // **अपडेटेड एवं फ़िक्स्ड स्टेप 3 (ताकि ऐप यहाँ पर न अटके)**
   function saveUserDetailStep() {
     const username = document.getElementById('regUsername').value.trim();
     const dob = document.getElementById('regDob').value;
     if(!username || !dob) return alert("यूजरनेम और जन्मतिथि भरें!");
     
-    db.ref('usernames/' + username.toLowerCase()).once('value', snap => {
-      if(snap.exists()) return alert("यह यूजरनेम पहले से ले लिया गया है!");
-      tempUserData.username = username;
-      tempUserData.dob = dob;
+    tempUserData.username = username;
+    tempUserData.dob = dob;
 
-      document.getElementById('step3').classList.add('hidden');
-      document.getElementById('step4').classList.remove('hidden');
-      document.getElementById('stepBadge').innerText = "स्टेप 4/4: पासवर्ड सेट करें";
-    });
+    document.getElementById('step3').classList.add('hidden');
+    document.getElementById('step4').classList.remove('hidden');
+    document.getElementById('stepBadge').innerText = "स्टेप 4/4: पासवर्ड सेट करें";
   }
 
   function completeRegistration() {
@@ -235,13 +233,12 @@
       res.user.sendEmailVerification();
       alert("आपके ईमेल पर वेरिफिकेशन लिंक भेज दिया गया है!");
 
-      // डेटाबेस में यूजर का डेटा व फोन नंबर सेव करना
       db.ref('users/' + uid).set({
         email: tempUserData.email,
         phone: tempUserData.phone,
         username: tempUserData.username,
         dob: tempUserData.dob,
-        lastPasswordChange: 0, // पासवर्ड पहली बार सेट हुआ
+        lastPasswordChange: 0,
         photoUrl: ''
       });
       db.ref('usernames/' + tempUserData.username.toLowerCase()).set(uid);
@@ -284,14 +281,14 @@
     }
   });
 
-  // 3. 1-दिन (24 घंटे) का पासवर्ड चेंज नियम
+  // 3. 1-दिन (24 घंटे) पासवर्ड नियम
   function handlePasswordChange() {
     const newPass = document.getElementById('newPasswordInput').value.trim();
     if(newPass.length < 6) return alert("नया पासवर्ड कम से कम 6 अक्षरों का होना चाहिए!");
 
     db.ref('users/' + currentUserUid).once('value', snap => {
       const lastChange = snap.val().lastPasswordChange || 0;
-      const oneDayMs = 24 * 60 * 60 * 1000; // 24 घंटे का समय (मिलीसेकेंड्स में)
+      const oneDayMs = 24 * 60 * 60 * 1000;
       
       if(Date.now() - lastChange < oneDayMs) {
         alert("सुरक्षा नियम: आप 1 दिन (24 घंटे) में केवल एक ही बार पासवर्ड बदल सकते हैं!");
